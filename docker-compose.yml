@@ -1,0 +1,44 @@
+version: '3.8'
+
+networks:
+  web-network:
+    driver: 'bridge'
+
+services:
+  php-fpm-app:
+    build:
+      args:
+        PHP_VERSION: $PHP_VERSION
+        PHPREDIS_VERSION: $PHPREDIS_VERSION
+        APP_ENV: $APP_ENV
+        XDEBUG_VERSION: $XDEBUG_VERSION
+      context: ./docker/php
+      dockerfile: Dockerfile
+      target: local
+    environment:
+      - COMPOSER_MEMORY_LIMIT=-1
+    restart: on-failure
+    command: sh -c 'php-fpm'
+    depends_on:
+      - mongodb-app
+    networks:
+      - web-network
+    container_name: ${PROJECT_NAME}-php
+    working_dir: /laravel
+  nginx:
+    image: nginx:alpine
+    container_name: app-nginx
+    ports:
+      - "8090:8090"
+      - "443:443"
+    volumes:
+      - ./:/var/www
+  db:
+    platform: linux/x86_64
+    image: mysql:5.6.47
+    container_name: app-db
+    ports:
+        - "3306:3306"
+    volumes:
+        - ./etc/infrastructure/mysql/my.cnf:/etc/mysql/my.cnf
+        - ./etc/database/base.sql:/docker-entrypoint-initdb.d/base.sql

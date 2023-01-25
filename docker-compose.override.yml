@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  db:
+    platform: linux/x86_64
+    image: mysql:8
+    container_name: app-db
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./etc/infrastructure/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./etc/database/base.sql:/docker-entrypoint-initdb.d/base.sql
